@@ -11,6 +11,7 @@ int challenge_two(std::fstream& fs);
 using Card = std::pair<std::string, std::string>;
 
 int calculate_points(Card card);
+int matching_numbers(Card card);
 
 int main(void) {
   std::fstream fs("input.txt");
@@ -22,7 +23,7 @@ int main(void) {
   fs.clear();
   fs.seekg(0);
 
-  // std::cout << "Challenge two: " << challenge_two(fs) << "\n";
+  std::cout << "Challenge two: " << challenge_two(fs) << "\n";
 
   fs.close();
   return 0;
@@ -32,6 +33,7 @@ int challenge_one(std::fstream& fs) {
   std::vector<std::string> lines {};
   std::vector<int> points {};
   std::string line;
+
   while (std::getline(fs, line))
     lines.push_back(line);
   
@@ -56,30 +58,58 @@ int challenge_one(std::fstream& fs) {
 }
 
 int calculate_points(Card card) {
+  int matching {matching_numbers(card)};
+
+  //bitshift left is same as doubling
+  return (matching > 0) ? (1 << (matching - 1)) : 0;
+}
+
+int challenge_two(std::fstream& fs) {
+  std::vector<std::string> lines {};
+  std::string line {};
+  
+  while (std::getline(fs, line)) 
+    lines.push_back(line.substr(line.find(':') + 2));
+
+  std::vector<Card> card_data {};
+  std::ranges::transform(lines, std::back_inserter(card_data), [](std::string& str){
+    return Card{str.substr(0, str.find('|') - 1), str.substr(str.find('|') + 2)};
+  });
+  
+  std::vector<int> scratchcards(lines.size(), 1);
+
+  for (int i = 0; i < scratchcards.size(); ++i) {
+    int num_cards {scratchcards[i]};
+    int win_count {matching_numbers(card_data[i])};
+    for (int j = i + 1; j < i + win_count + 1 && j < scratchcards.size(); ++j) {
+      scratchcards[j] += num_cards;
+    }
+  }
+
+  return std::accumulate(scratchcards.begin(), scratchcards.end(), 0);
+}
+
+int matching_numbers(Card card) {
   std::vector<int> winning {};
   std::vector<int> actual {};
   std::vector<int> intersection {};
-  
-  int number;
-  std::stringstream ss {};
 
-  ss << card.first; // winning numbers first
-  while (ss >> number) {
-    winning.push_back(number);
-  }
- 
-  ss.clear(); // clear eof bit
-  ss << card.second; // actual numbers second
-  while (ss >> number) {
-    actual.push_back(number);
-  }
+  std::stringstream ss;
+  int num {0};
+
+  ss << card.first; //winning numbers first
+  while (ss >> num)
+    winning.push_back(num);
+
+  ss.clear();
+  ss << card.second;
+  while (ss >> num)
+    actual.push_back(num);
 
   std::ranges::sort(winning);
   std::ranges::sort(actual);
 
-  // to find which numbers are in both sets
   std::ranges::set_intersection(winning, actual, std::back_inserter(intersection));
 
-  //bitshift left is same as doubling
-  return (intersection.size() > 0) ? (1 << (intersection.size() - 1)) : 0;
+  return intersection.size();
 }
