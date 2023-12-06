@@ -4,6 +4,7 @@
 #include <numeric>
 #include <algorithm>
 #include <vector>
+#include <cctype>
 
 using RaceData = std::pair<int64_t, int64_t>;
 
@@ -17,6 +18,7 @@ int main(void) {
 
   std::cout << "Challenge one: " << challenge_one(fs) << std::endl;
 
+  fs.clear();
   fs.seekg(0);
   fs.clear();
   std::cout << "Challenge two: " << challenge_two(fs) << std::endl;
@@ -51,12 +53,6 @@ int64_t challenge_one(std::fstream& fs) {
     races.push_back(RaceData {race_durations[i], race_records[i]});
   }
 
-  std::cout << "Races: ";
-  for (auto& [d, r] : races) {
-    std::cout << "(" << d << ", " << r << "), "; 
-  }
-  std::cout << std::endl;
-
   for (const auto& [d, r] : races) {
     int64_t duration = d;
     int64_t ways = 0;
@@ -74,5 +70,28 @@ int64_t challenge_one(std::fstream& fs) {
 }
 
 int64_t challenge_two(std::fstream& fs) {
-  return 0;
+  std::vector<std::string> lines {};
+  std::string line;
+  RaceData race;
+  int64_t ways_to_win {0};
+  while (std::getline(fs, line))
+    lines.push_back(line.substr(line.find(':') + 1));
+
+  std::ranges::for_each(lines, [](auto& str){
+    str.erase(std::remove_if(str.begin(), str.end(), [](auto& ch){
+      return std::isspace(ch);
+    }), str.end());
+  });
+
+  race = RaceData{std::stol(lines[0]), std::stol(lines[1])};
+  
+  const auto race_duration = race.first;
+  const auto race_record = race.second;
+  auto current_duration = race.first;
+  while (current_duration) {
+    if (current_duration * (race_duration - current_duration) > race_record)
+      ways_to_win++;
+    current_duration--;
+  }
+  return ways_to_win;
 }
