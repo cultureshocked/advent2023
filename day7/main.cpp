@@ -64,7 +64,6 @@ struct Hand {
     std::vector<int> cardcounts {};
     std::ranges::sort(localhand);
     
-    std::cout << std::endl;
     int idx {0};
     while (idx < localhand.size()) {
       int64_t element_count {std::count(localhand.begin(), localhand.end(), localhand[idx])};
@@ -127,14 +126,12 @@ struct Hand {
           return;
       }
     }
-    std::cout << std::endl;
   }
 };
 
 using HandVec = std::vector<Hand>;
 
 int main(void) {
-  std::cout << (CardValue::FIVE > CardValue::SIX) << std::endl;
   std::fstream fs("input.txt");
   if (!fs.is_open())
     return -1;
@@ -164,11 +161,6 @@ int64_t challenge_one(std::fstream& fs) {
     split_hands.push_back(std::pair {hand, bet_value});
   }
 
-  std::cout << "Split hands: " << std::endl;
-  for (auto& h : split_hands) {
-    std::cout << "(" << h.first << ", " << h.second << "), " << std::endl;
-  }
-
   std::vector<std::pair<Hand, int64_t>> real_hands {};
   std::transform(split_hands.begin(), split_hands.end(), std::back_inserter(real_hands), [](auto h){
     Hand localh;
@@ -184,7 +176,6 @@ int64_t challenge_one(std::fstream& fs) {
   for (int i = 0; i < real_hands.size(); ++i) {
     real_hands[i].second *= i + 1;
   }
-
   
   std::vector<int64_t> bets;
   for (auto& h : real_hands) {
